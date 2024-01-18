@@ -3,8 +3,8 @@ import random
 class Maze:
     def __init__(self, level, ghostNumber):
         # Set the dimensions of the maze
-        self.num_cells_x = 31
-        self.num_cells_y = 28
+        self.num_cells_x = 29
+        self.num_cells_y = 26
         # Initialize all cells as walls (0)
         self.grid = [[0 for _ in range(self.num_cells_y)] for _ in range(self.num_cells_x)]
         # Stack for depth-first search algorithm
@@ -13,7 +13,7 @@ class Maze:
         self.ghost_number = ghostNumber
         # Determine the starting cell based on the level
         level_start = random.randint(1, 10)
-        print(f"Level {level}, Starting Number: {level_start}")
+        #print(f"Level {level}, Starting Number: {level_start}")
 
         # Calculate starting cell based on level_start
         start_x = random.randint(1, self.num_cells_x - 2)
@@ -26,6 +26,15 @@ class Maze:
         # Run the DFS algorithm until the stack is empty
         while self.stack:
             self.step()
+
+        # Enhance each array in the original list by adding a 0 at the beginning and at the end
+        originalGrid = self.grid
+        enhanced_list = [[0] + array + [0] for array in originalGrid]
+        # Extend the list to size 31 by adding an array of size 28 filled with 0 at the beginning and at the end
+        enhanced_list.insert(0, [0] * 28)  # Insert at the beginning
+        enhanced_list.append([0] * 28)  # Append at the end
+        # add wall aroun the maze
+        self.grid = enhanced_list
 
     def step(self):
         # Process one step in the DFS
@@ -66,17 +75,17 @@ class Maze:
     def place_ghosts(self, candidate_spawn_locations):
         # Place a specified number of ghosts ('G') randomly in the maze
         numberOfGhosts = self.ghost_number
-        for _ in range(numberOfGhosts):
-            max_number = len(candidate_spawn_locations)
-            min_number = 0
-            try:
+        if candidate_spawn_locations == []:
+            self.place_ghosts_randomly()
+        else:
+            for _ in range(numberOfGhosts):
+                max_number = len(candidate_spawn_locations)
+                min_number = 0
                 selected_index = random.randint(min_number, max_number-1)
                 x, y = candidate_spawn_locations[selected_index]
                 self.grid[x][y] = 'G'
                 candidate_spawn_locations.pop(selected_index)
                 self.ghost_number-=1
-            except:
-                self.place_ghosts_randomly()
 
     def place_ghosts_randomly(self):
         # Place a specified number of ghosts ('G') randomly in the maze
@@ -91,8 +100,8 @@ class Maze:
         # Return the current state of the maze
         return self.grid
 
-"""
 
+"""
 #%%  Example usage
 levelNumber = 1
 ghostNumber = 2
@@ -103,5 +112,4 @@ generated_maze = maze.get_maze() # get maze
 # print maze
 for row in generated_maze:
     print(' '.join(str(cell) for cell in row))
-
 """
