@@ -4,7 +4,8 @@ import tcod
 import random
 from enum import Enum
 from GenerateMaze import Maze
-
+from StrategyAI import GhostStrategyAI
+import time
 
 class Direction(Enum):
     DOWN = -90
@@ -79,7 +80,7 @@ class Wall(GameObject):
 
 
 class GameRenderer:
-    def __init__(self, in_width: int, in_height: int):
+    def __init__(self, in_width: int, in_height: int, GhostStrategyAI):
         pygame.init()
         self._width = in_width
         self._height = in_height
@@ -111,6 +112,7 @@ class GameRenderer:
             (5, 999999)  # 'infinite' chase seconds
         ]
         self._current_phase = 0
+        self.GhostStrategyAI = GhostStrategyAI
 
     def tick(self, in_fps: int):
         black = (0, 0, 0)
@@ -130,6 +132,40 @@ class GameRenderer:
             self._clock.tick(in_fps)
             self._screen.fill(black)
             self._handle_events()
+
+        print("Game over")
+
+    def updatedTick(self, in_fps: int, numberOfGhost, unified_size):
+        black = (0, 0, 0)
+
+        self.handle_mode_switch()
+        pygame.time.set_timer(self._pakupaku_event, 200) # open close mouth
+        last_ghost_spawn_time = time.time()
+        while not self._done:
+            for game_object in self._game_objects:
+                game_object.tick()
+                game_object.draw()
+
+            self.display_text(f"[Score: {self._score}]  [Lives: {self._lives}]")
+
+            if self._hero is None: self.display_text("YOU DIED", (self._width / 2 - 256, self._height / 2 - 256), 100)
+            if self.get_won(): self.display_text("YOU WON", (self._width / 2 - 256, self._height / 2 - 256), 100)
+            pygame.display.flip()
+            self._clock.tick(in_fps)
+            self._screen.fill(black)
+            self._handle_events()
+            if time.time() - last_ghost_spawn_time > 60:
+                #print("ghost added")
+                spawn_location = self.GhostStrategyAI.newGhostGeneration()
+                if spawn_location != None:
+                    numberOfGhost+=1
+                    ghost = Ghost(game_renderer, spawn_location[0], spawn_location[1], unified_size, pacman_game,
+                                  pacman_game.ghost_colors[numberOfGhost % 4])
+                    game_renderer.add_ghost(ghost)
+                    last_ghost_spawn_time = time.time()
+                else:
+                    last_ghost_spawn_time = time.time()
+
 
         print("Game over")
 
@@ -537,6 +573,7 @@ class PacmanGameController:
         #self.convert_maze_to_numpy()
         self.p = Pathfinder(self.numpy_maze)
 
+
     def request_new_random_path(self, in_ghost: Ghost):
         random_space = random.choice(self.reachable_spaces)
         current_maze_coord = translate_screen_to_maze(in_ghost.get_position())
@@ -592,12 +629,16 @@ if __name__ == "__main__":
     numberOfGhost = 2 # define number of ghost
     mazeWithDepthFirst = Maze(levelNumber, numberOfGhost) # define maze
     mazeWithDepthFirst.generate() # generate maze using Depth-First Alg.
-    mazeWithDepthFirst.place_ghosts() # place ghosts randomly
+    initialMaze = mazeWithDepthFirst.get_maze() # get maze without ghosts
+    strategyAI = GhostStrategyAI(initialMaze) # initialize GhostStrategyAI class
+    candidateGhostLocations=strategyAI.bfs() # find candidate ghost locations
+    mazeWithDepthFirst.place_ghosts(candidateGhostLocations) # place ghosts using breadth-first algorithm
     generated_maze = mazeWithDepthFirst.get_maze() # get generated maze
-
     pacman_game = PacmanGameController(generated_maze)
+
+
     size = pacman_game.size
-    game_renderer = GameRenderer(size[0] * unified_size, size[1] * unified_size)
+    game_renderer = GameRenderer(size[0] * unified_size, size[1] * unified_size, strategyAI)
 
     for y, row in enumerate(pacman_game.numpy_maze):
         for x, column in enumerate(row):
@@ -614,14 +655,17 @@ if __name__ == "__main__":
         powerup = Powerup(game_renderer, translated[0] + unified_size / 2, translated[1] + unified_size / 2)
         game_renderer.add_powerup(powerup)
 
+    numberOfGhost = 0
     for i, ghost_spawn in enumerate(pacman_game.ghost_spawns):
         translated = translate_maze_to_screen(ghost_spawn)
         ghost = Ghost(game_renderer, translated[0], translated[1], unified_size, pacman_game,
                       pacman_game.ghost_colors[i % 4])
         game_renderer.add_ghost(ghost)
+        numberOfGhost+=1
 
     pacman = Hero(game_renderer, unified_size, unified_size, unified_size)
     game_renderer.add_hero(pacman)
     game_renderer.set_current_mode(GhostBehaviour.CHASE)
-    game_renderer.tick(120)
+    #game_renderer.tick(120)
+    game_renderer.updatedTick(120, numberOfGhost, unified_size)
     

@@ -63,7 +63,22 @@ class Maze:
         # Remove the wall to create a path
         self.grid[mx][my] = 1
 
-    def place_ghosts(self):
+    def place_ghosts(self, candidate_spawn_locations):
+        # Place a specified number of ghosts ('G') randomly in the maze
+        numberOfGhosts = self.ghost_number
+        for _ in range(numberOfGhosts):
+            max_number = len(candidate_spawn_locations)
+            min_number = 0
+            try:
+                selected_index = random.randint(min_number, max_number-1)
+                x, y = candidate_spawn_locations[selected_index]
+                self.grid[x][y] = 'G'
+                candidate_spawn_locations.pop(selected_index)
+                self.ghost_number-=1
+            except:
+                self.place_ghosts_randomly()
+
+    def place_ghosts_randomly(self):
         # Place a specified number of ghosts ('G') randomly in the maze
         numberOfGhosts = self.ghost_number
         for _ in range(numberOfGhosts):
@@ -76,13 +91,17 @@ class Maze:
         # Return the current state of the maze
         return self.grid
 
+"""
+
 #%%  Example usage
 levelNumber = 1
 ghostNumber = 2
 maze = Maze(levelNumber, ghostNumber)
 maze.generate() # generate maze
-maze.place_ghosts()  # place ghosts
+maze.place_ghosts(list())  # place ghosts
 generated_maze = maze.get_maze() # get maze
 # print maze
 for row in generated_maze:
     print(' '.join(str(cell) for cell in row))
+
+"""
