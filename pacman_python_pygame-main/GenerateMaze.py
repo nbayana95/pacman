@@ -33,6 +33,8 @@ class Maze:
         else:
             self.generate_dfs()
 
+        self.open_portals()
+
 
     def generate_dfs(self):
         # Run the DFS algorithm until the stack is empty
@@ -121,6 +123,22 @@ class Maze:
         neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
         visited_neighbors = [n for n in neighbors if self.grid[n[0]][n[1]] == 1]
         return len(visited_neighbors) == 1 and self.grid[x][y] == 0
+
+
+    def open_portals(self, num_portals = 3):
+        suitable_rows = []
+        # Check each row for potential portal placement
+        for i in range(1, self.num_cells_x - 1):  # Avoid the first and last row
+            if self.grid[i][1] != 0 and self.grid[i][self.num_cells_y - 2] != 0:  # Check if 2nd and 2nd-last columns are not walls
+                suitable_rows.append(i)
+
+        # Randomly pick rows to open portals
+        for _ in range(min(num_portals, len(suitable_rows))):
+            row_to_open = random.choice(suitable_rows)
+            suitable_rows.remove(row_to_open)  # Remove the chosen row from the list to avoid duplicate selection
+            # Open portals by setting the first and last cells in the row to be passageways (not walls)
+            self.grid[row_to_open][0] = 1
+            self.grid[row_to_open][self.num_cells_y - 1] = 1
 
 
     def place_ghosts(self, candidate_spawn_locations):
