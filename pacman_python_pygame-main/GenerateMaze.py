@@ -25,6 +25,7 @@ class Maze:
         # For Prim's algorithm, add the neighboring walls of the starting cell
         self.add_walls(start_x, start_y)
         self.stack.append(self.current_cell)
+        self.player_coordinate = None  # Initialize player_coordinate
 
 
     def generate(self, method='prims'):
@@ -33,6 +34,7 @@ class Maze:
         else:
             self.generate_dfs()
 
+        self.place_player()
         self.open_portals()
 
 
@@ -140,6 +142,43 @@ class Maze:
             self.grid[row_to_open][0] = 1
             self.grid[row_to_open][self.num_cells_y - 1] = 1
 
+    def get_coordinates_that_arent_walls(self):
+        not_wall_coordinates = []
+        for x in range(1, self.num_cells_x - 1):
+            for y in range(1, self.num_cells_y - 1):
+                if self.grid[x][y] != 0:  # If the cell is not a wall
+                    not_wall_coordinates.append((x, y))
+        
+        print(not_wall_coordinates)
+        return not_wall_coordinates
+
+    def place_player(self):
+        # Get a list of coordinates that are not walls
+        not_wall_coordinates = self.get_coordinates_that_arent_walls()
+        
+        # Randomly select a coordinate from the list
+        self.player_coordinate = random.choice(not_wall_coordinates)
+        
+        # Place the player at the selected coordinate by setting it to "P"
+        x, y = self.player_coordinate
+        print("PLAYER COORDINATE", self.player_coordinate)
+        self.grid[x][y] = "P"
+
+    def update_player_position(self):
+        # Update the player position by setting the previous position to a path
+        x, y = self.player_coordinate
+        self.grid[x][y] = 1
+
+        # Get a list of coordinates that are not walls
+        not_wall_coordinates = self.get_coordinates_that_arent_walls()
+
+        # Randomly select a coordinate from the list
+        self.player_coordinate = random.choice(not_wall_coordinates)
+
+        # Place the player at the selected coordinate by setting it to "P"
+        x, y = self.player_coordinate
+        self.grid[x][y] = "P"
+        return self.player_coordinate
 
     def place_ghosts(self, candidate_spawn_locations):
         # Place a specified number of ghosts ('G') randomly in the maze
