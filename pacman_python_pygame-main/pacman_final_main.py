@@ -627,14 +627,13 @@ if __name__ == "__main__":
     #TODO : Move these code into PacmanGameController
     levelNumber = 1 # define level number
     numberOfGhost = 2 # define number of ghost
-    mazeWithDepthFirst = Maze(levelNumber, numberOfGhost) # define maze
-    mazeWithDepthFirst.generate() # generate maze using Depth-First Alg.
-    initialMaze = mazeWithDepthFirst.get_maze() # get maze without ghosts
-    strategyAI = GhostStrategyAI(initialMaze) # initialize GhostStrategyAI class
-    candidateGhostLocations=strategyAI.bfs() # find candidate ghost locations
-    mazeWithDepthFirst.place_ghosts(candidateGhostLocations) # place ghosts using breadth-first algorithm
-    generated_maze = mazeWithDepthFirst.get_maze() # get generated maze
-    pacman_game = PacmanGameController(generated_maze)
+    generated_maze = Maze(levelNumber, numberOfGhost) # define maze
+    generated_maze.generate() # generate maze using Depth-First Alg.
+    initial_maze_grid = generated_maze.get_maze() # get maze without ghosts
+    strategyAI = GhostStrategyAI(initial_maze_grid) # initialize GhostStrategyAI class
+    candidateGhostLocations = strategyAI.bfs() # find candidate ghost locations
+    generated_maze.place_ghosts(candidateGhostLocations) # place ghosts using breadth-first algorithm
+    pacman_game = PacmanGameController(generated_maze.get_maze())
 
 
     size = pacman_game.size
