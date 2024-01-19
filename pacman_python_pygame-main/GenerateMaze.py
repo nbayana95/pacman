@@ -9,6 +9,8 @@ class Maze:
         self.grid = [[0 for _ in range(self.num_cells_y)] for _ in range(self.num_cells_x)]
         # Stack for depth-first search algorithm
         self.stack = []
+        # Wall list for Prim's algorithm
+        self.walls = []
         # Ghost number to be added
         self.ghost_number = ghostNumber
         # Determine the starting cell based on the level
@@ -20,9 +22,19 @@ class Maze:
         start_y = random.randint(1, self.num_cells_y - 2)
         self.current_cell = (start_x, start_y)
         self.grid[self.current_cell[0]][self.current_cell[1]] = 1
+        # For Prim's algorithm, add the neighboring walls of the starting cell
+        self.add_walls(start_x, start_y)
         self.stack.append(self.current_cell)
 
-    def generate(self):
+
+    def generate(self, method='prims'):
+        if method == 'prims':
+            self.generate_prims()
+        else:
+            self.generate_dfs()
+
+
+    def generate_dfs(self):
         # Run the DFS algorithm until the stack is empty
         while self.stack:
             self.step()
@@ -71,6 +83,45 @@ class Maze:
         mx, my = (x + nx) // 2, (y + ny) // 2
         # Remove the wall to create a path
         self.grid[mx][my] = 1
+
+
+    def generate_prims(self):
+        # Start with a random cell, mark it as part of the maze
+        start_x = random.randint(1, self.num_cells_x - 2)
+        start_y = random.randint(1, self.num_cells_y - 2)
+        self.grid[start_x][start_y] = 1
+        self.add_walls(start_x, start_y)
+
+        while self.walls:
+            # Choose a random wall from the list
+            wall = random.choice(self.walls)
+            self.walls.remove(wall)
+            x, y = wall
+
+            # Check if the wall divides a cell in the maze and a cell not in the maze
+            if self.is_valid_wall(x, y):
+                # Make the wall a passage
+                self.grid[x][y] = 1
+                # Add the neighboring walls of the cell to the wall list
+                self.add_walls(x, y)
+
+    def add_walls(self, x, y):
+        # Add walls of a cell to the walls list if the opposite cell is not visited
+        if x > 1 and self.grid[x - 2][y] == 0:
+            self.walls.append((x - 1, y))
+        if x < self.num_cells_x - 2 and self.grid[x + 2][y] == 0:
+            self.walls.append((x + 1, y))
+        if y > 1 and self.grid[x][y - 2] == 0:
+            self.walls.append((x, y - 1))
+        if y < self.num_cells_y - 2 and self.grid[x][y + 2] == 0:
+            self.walls.append((x, y + 1))
+
+    def is_valid_wall(self, x, y):
+        # Check if the wall divides a cell in the maze and a cell not in the maze
+        neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        visited_neighbors = [n for n in neighbors if self.grid[n[0]][n[1]] == 1]
+        return len(visited_neighbors) == 1 and self.grid[x][y] == 0
+
 
     def place_ghosts(self, candidate_spawn_locations):
         # Place a specified number of ghosts ('G') randomly in the maze
