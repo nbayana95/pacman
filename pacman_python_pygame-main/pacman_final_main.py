@@ -6,7 +6,8 @@ from enum import Enum
 from GenerateMaze import Maze
 from StrategyAI import GhostStrategyAI
 import time
-
+import json
+from datetime import datetime
 
 UNIFIED_SIZE = 32
 
@@ -117,6 +118,12 @@ class GameRenderer:
         ]
         self._current_phase = 0
         self.GhostStrategyAI = GhostStrategyAI
+        self.GhostNumber = 0
+        # define log dictionary
+        GhostDict = {'id': list(), 'x': list(), 'y': list()}
+        HeroDict = {'x': list(), 'y': list()}
+        self.logDict = {'HeroLocation': HeroDict, 'GhostNumber': list(), 'GhostInfo': GhostDict, 'CurrentTime': list(),
+                   'GhostSpawnTime': list(), 'TimeDiff': list(), 'Score': list(), 'Life': list()}
 
     def tick(self, in_fps: int):
         black = (0, 0, 0)
@@ -141,7 +148,7 @@ class GameRenderer:
 
     def updatedTick(self, in_fps: int, numberOfGhost, UNIFIED_SIZE):
         black = (0, 0, 0)
-
+        self.GhostNumber = numberOfGhost
         self.handle_mode_switch()
         pygame.time.set_timer(self._pakupaku_event, 200) # open close mouth
         last_ghost_spawn_time = time.time()
@@ -150,27 +157,55 @@ class GameRenderer:
                 game_object.tick()
                 game_object.draw()
 
-            self.display_text(f"[Score: {self._score}]  [Lives: {self._lives}]")
+            # write logs
+            currentTime = time.time()
+            heroInfo = self._hero
+            try:
+                self.logDict['HeroLocation']['x'].append(heroInfo.x)
+                self.logDict['HeroLocation']['y'].append(heroInfo.y)
+            except: # if hero is dead, there is no position
+                 pass
+            self.logDict['CurrentTime'].append(currentTime)
+            self.logDict['GhostSpawnTime'].append(last_ghost_spawn_time)
+            self.logDict['TimeDiff'].append(abs(currentTime-last_ghost_spawn_time))
+            ghostInfo = self._ghosts
+            ghostNumber = len(self._ghosts)
+            self.logDict['GhostNumber'].append(len(self._ghosts))
+            for ind in range(ghostNumber):
+                self.logDict['GhostInfo']['id'].append(ind)
+                self.logDict['GhostInfo']['x'].append(ghostInfo[ind].x)
+                self.logDict['GhostInfo']['y'].append(ghostInfo[ind].y)
+            self.logDict['Score'].append(self._score)
+            self.logDict['Life'].append(self._lives)
 
+            self.display_text(f"[Score: {self._score}]  [Lives: {self._lives}]")
             if self._hero is None: self.display_text("YOU DIED", (self._width / 2 - 256, self._height / 2 - 256), 100)
             if self.get_won(): self.display_text("YOU WON", (self._width / 2 - 256, self._height / 2 - 256), 100)
             pygame.display.flip()
             self._clock.tick(in_fps)
             self._screen.fill(black)
             self._handle_events()
-            if time.time() - last_ghost_spawn_time > 60:
+
+            if currentTime - last_ghost_spawn_time > 60:
                 #print("ghost added")
                 spawn_location = self.GhostStrategyAI.newGhostGeneration()
                 if spawn_location != None:
-                    numberOfGhost+=1
-                    ghost = Ghost(game_renderer, spawn_location[0], spawn_location[1], UNIFIED_SIZE, pacman_game,
-                                  pacman_game.ghost_colors[numberOfGhost % 4])
+                    self.GhostNumber+=1
+                    ghost = Ghost(game_renderer, spawn_location[0] * UNIFIED_SIZE, spawn_location[1]* UNIFIED_SIZE, UNIFIED_SIZE, pacman_game,
+                                  pacman_game.ghost_colors[self.GhostNumber % 4])
+
                     game_renderer.add_ghost(ghost)
-                    last_ghost_spawn_time = time.time()
+                    last_ghost_spawn_time = currentTime
                 else:
-                    last_ghost_spawn_time = time.time()
+                    last_ghost_spawn_time = currentTime
 
-
+        # save logs as json file
+        # Writing nested dictionary to a JSON file (similar to text file)
+        # Get the current system date and time
+        current_time = datetime.now()
+        filename = current_time.strftime("%d%m%Y_%H%M%S.json")
+        with open(filename, 'w') as file:
+            json.dump(self.logDict, file, indent=4)  # 'indent' for pretty printing
         print("Game over")
 
     def handle_mode_switch(self):
@@ -629,17 +664,17 @@ class PacmanGameController:
             self.numpy_maze.append(binary_row)
 
 if __name__ == "__main__":
-    #TODO : Move these code into PacmanGameController
     levelNumber = 1 # define level number
     numberOfGhost = 2 # define number of ghost
     generated_maze = Maze(levelNumber, numberOfGhost) # define maze
     generated_maze.generate() # generate maze using Depth-First Alg.
     initial_maze_grid = generated_maze.get_maze() # get maze without ghosts
-    strategyAI = GhostStrategyAI(initial_maze_grid) # initialize GhostStrategyAI class
+    player_coordinate = generated_maze.player_coordinate # get pacman location
+    strategyAI = GhostStrategyAI(initial_maze_grid, player_coordinate) # initialize GhostStrategyAI class
     candidateGhostLocations = strategyAI.bfs() # find candidate ghost locations
     generated_maze.place_ghosts(candidateGhostLocations) # place ghosts using breadth-first algorithm
     pacman_game = PacmanGameController(generated_maze.get_maze())
-    player_coordinate = generated_maze.player_coordinate
+
 
     size = pacman_game.size
     game_renderer = GameRenderer(size[0] * UNIFIED_SIZE, size[1] * UNIFIED_SIZE, strategyAI)
@@ -671,6 +706,6 @@ if __name__ == "__main__":
     pacman.maze = generated_maze
     game_renderer.add_hero(pacman)
     game_renderer.set_current_mode(GhostBehaviour.CHASE)
-    #game_renderer.tick(120)
+    # game_renderer.tick(120)
     game_renderer.updatedTick(120, numberOfGhost, UNIFIED_SIZE)
     

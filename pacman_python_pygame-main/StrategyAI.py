@@ -2,7 +2,7 @@
 import time
 import random
 class GhostStrategyAI():
-    def __init__(self, maze_grid, pacman_start=(0,0), min_distance=10):
+    def __init__(self, maze_grid, pacman_start, min_distance=10):
         self.maze_grid = maze_grid
         self.pacman_start = pacman_start
         self.min_distance = min_distance
