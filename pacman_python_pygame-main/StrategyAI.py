@@ -47,8 +47,9 @@ class GhostStrategyAI():
 
         return self.proposed_spawn_locations
 
-    def newGhostGeneration(self):
-        candidate_spawn_locations = self.proposed_spawn_locations
+    def newGhostGeneration(self, pacman_location):
+        self.pacman_start = pacman_location
+        candidate_spawn_locations = self.bfs()
 
         if len(candidate_spawn_locations)>0:
             max_number = len(candidate_spawn_locations)

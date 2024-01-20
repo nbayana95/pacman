@@ -161,8 +161,8 @@ class GameRenderer:
             currentTime = time.time()
             heroInfo = self._hero
             try:
-                self.logDict['HeroLocation']['x'].append(heroInfo.x)
-                self.logDict['HeroLocation']['y'].append(heroInfo.y)
+                self.logDict['HeroLocation']['x'].append(int(heroInfo.x/UNIFIED_SIZE))
+                self.logDict['HeroLocation']['y'].append(int(heroInfo.y/UNIFIED_SIZE))
             except: # if hero is dead, there is no position
                  pass
             self.logDict['CurrentTime'].append(currentTime)
@@ -173,8 +173,8 @@ class GameRenderer:
             self.logDict['GhostNumber'].append(len(self._ghosts))
             for ind in range(ghostNumber):
                 self.logDict['GhostInfo']['id'].append(ind)
-                self.logDict['GhostInfo']['x'].append(ghostInfo[ind].x)
-                self.logDict['GhostInfo']['y'].append(ghostInfo[ind].y)
+                self.logDict['GhostInfo']['x'].append(int(ghostInfo[ind].x/UNIFIED_SIZE))
+                self.logDict['GhostInfo']['y'].append(int(ghostInfo[ind].y/UNIFIED_SIZE))
             self.logDict['Score'].append(self._score)
             self.logDict['Life'].append(self._lives)
 
@@ -188,7 +188,8 @@ class GameRenderer:
 
             if currentTime - last_ghost_spawn_time > 60:
                 #print("ghost added")
-                spawn_location = self.GhostStrategyAI.newGhostGeneration()
+
+                spawn_location = self.GhostStrategyAI.newGhostGeneration((self.logDict['HeroLocation']['x'], self.logDict['HeroLocation']['y']))
                 if spawn_location != None:
                     self.GhostNumber+=1
                     ghost = Ghost(game_renderer, spawn_location[0] * UNIFIED_SIZE, spawn_location[1]* UNIFIED_SIZE, UNIFIED_SIZE, pacman_game,

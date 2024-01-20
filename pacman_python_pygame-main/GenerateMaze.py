@@ -35,6 +35,7 @@ class Maze:
             self.generate_dfs()
 
         self.place_player()
+        self.place_powerups()
         self.open_portals()
 
 
@@ -179,6 +180,22 @@ class Maze:
         x, y = self.player_coordinate
         self.grid[x][y] = "P"
         return self.player_coordinate
+
+    def place_powerups(self, num_powerups = 7):
+        # Get a list of coordinates that are not walls
+        not_wall_coordinates = self.get_coordinates_that_arent_walls()
+
+        # Remove the player's coordinate from the list to avoid placing power-ups on the player
+        if self.player_coordinate in not_wall_coordinates:
+            not_wall_coordinates.remove(self.player_coordinate)
+
+        # Randomly select unique coordinates for power-ups, ensuring no duplicates
+        powerup_positions = random.sample(not_wall_coordinates, min(num_powerups, len(not_wall_coordinates)))
+        
+        # Place power-ups at the selected coordinates by setting them to "O"
+        for x, y in powerup_positions:
+            self.grid[x][y] = "O"
+
 
     def place_ghosts(self, candidate_spawn_locations):
         # Place a specified number of ghosts ('G') randomly in the maze
