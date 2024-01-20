@@ -109,7 +109,7 @@ class Maze:
             if self.is_valid_wall(x, y):
                 self.grid[x][y] = 1  # Carve out a path by turning the wall into an open space
                 nx, ny = self.get_opposite_cell(x, y)
-                if 0 <= nx < self.num_cells_x and 0 <= ny < self.num_cells_y:
+                if 1 <= nx < self.num_cells_x - 1  and 1 <= ny < self.num_cells_y - 1:
                     self.grid[nx][ny] = 1
                     self.add_walls(nx, ny)
 
