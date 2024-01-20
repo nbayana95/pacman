@@ -191,6 +191,8 @@ class GameRenderer:
             self._screen.fill(black)
             self._handle_events()
 
+            #print(currentTime - last_ghost_spawn_time)
+
             if currentTime - last_ghost_spawn_time > 60:
                 #print("ghost added")
 
@@ -508,10 +510,15 @@ class Ghost(MovableObject):
     def calculate_direction_to_next_target(self) -> Direction:
         if self.next_target is None:
             # if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active() or self.Chase:
-            if self.Chase and not self._renderer.is_kokoro_active():
-                self.request_path_to_player(self)
-            else:
+            
+            if self._renderer.is_kokoro_active():
                 self.game_controller.request_new_random_path(self)
+            else:
+                if self.Chase:
+                    self.request_path_to_player(self)
+                else:
+                    self.game_controller.request_new_random_path(self)
+            
             return Direction.NONE
 
         diff_x = self.next_target[0] - self.x
