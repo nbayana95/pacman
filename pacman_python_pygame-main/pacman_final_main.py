@@ -175,6 +175,11 @@ class GameRenderer:
                 self.logDict['GhostInfo']['id'].append(ind)
                 self.logDict['GhostInfo']['x'].append(int(ghostInfo[ind].x/UNIFIED_SIZE))
                 self.logDict['GhostInfo']['y'].append(int(ghostInfo[ind].y/UNIFIED_SIZE))
+                manhattanScore = abs(self.logDict['GhostInfo']['x'][-1]-self.logDict['HeroLocation']['x'][-1])+abs(self.logDict['GhostInfo']['y'][-1]-self.logDict['HeroLocation']['y'][-1])
+                if manhattanScore<=10:
+                    ghostInfo[ind].Chase = 1
+                else:
+                    ghostInfo[ind].Chase = 0
             self.logDict['Score'].append(self._score)
             self.logDict['Life'].append(self._lives)
 
@@ -189,7 +194,7 @@ class GameRenderer:
             if currentTime - last_ghost_spawn_time > 60:
                 #print("ghost added")
 
-                spawn_location = self.GhostStrategyAI.newGhostGeneration((self.logDict['HeroLocation']['x'], self.logDict['HeroLocation']['y']))
+                spawn_location = self.GhostStrategyAI.newGhostGeneration((self.logDict['HeroLocation']['x'][-1], self.logDict['HeroLocation']['y'][-1]))
                 if spawn_location != None:
                     self.GhostNumber+=1
                     ghost = Ghost(game_renderer, spawn_location[0] * UNIFIED_SIZE, spawn_location[1]* UNIFIED_SIZE, UNIFIED_SIZE, pacman_game,
@@ -488,6 +493,7 @@ class Ghost(MovableObject):
         self.game_controller = in_game_controller
         self.sprite_normal = pygame.image.load(sprite_path)
         self.sprite_fright = pygame.image.load("images/ghost_fright.png")
+        self.Chase = 0
 
     def reached_target(self):
         if (self.x, self.y) == self.next_target:
@@ -501,7 +507,8 @@ class Ghost(MovableObject):
 
     def calculate_direction_to_next_target(self) -> Direction:
         if self.next_target is None:
-            if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active():
+            # if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active() or self.Chase:
+            if self.Chase and not self._renderer.is_kokoro_active():
                 self.request_path_to_player(self)
             else:
                 self.game_controller.request_new_random_path(self)
