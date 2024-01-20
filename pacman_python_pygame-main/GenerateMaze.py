@@ -149,7 +149,7 @@ class Maze:
                 if self.grid[x][y] != 0:  # If the cell is not a wall
                     not_wall_coordinates.append((x, y))
         
-        print(not_wall_coordinates)
+        #print(not_wall_coordinates)
         return not_wall_coordinates
 
     def place_player(self):
@@ -161,7 +161,7 @@ class Maze:
         
         # Place the player at the selected coordinate by setting it to "P"
         x, y = self.player_coordinate
-        print("PLAYER COORDINATE", self.player_coordinate)
+        #print("PLAYER COORDINATE", self.player_coordinate)
         self.grid[x][y] = "P"
 
     def update_player_position(self):
