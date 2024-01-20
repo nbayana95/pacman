@@ -53,7 +53,7 @@ class Maze:
         # add wall aroun the maze
         self.grid = enhanced_list
 
-    def step(self):
+    def dfs_step(self):
         # Process one step in the DFS
         cx, cy = self.stack[-1]
         neighbors = self.find_unvisited_neighbors(cx, cy)
@@ -91,44 +91,67 @@ class Maze:
 
 
     def generate_prims(self):
-        # Start with a random cell, mark it as part of the maze
+        # Start with a grid full of walls
+        self.grid = [[0 for _ in range(self.num_cells_y)] for _ in range(self.num_cells_x)]
+        
+        # Start with a random cell, mark it as an open path
         start_x = random.randint(1, self.num_cells_x - 2)
         start_y = random.randint(1, self.num_cells_y - 2)
         self.grid[start_x][start_y] = 1
+
+        # Add the walls of the starting cell to the list
         self.add_walls(start_x, start_y)
 
         while self.walls:
-            # Choose a random wall from the list
             wall = random.choice(self.walls)
-            self.walls.remove(wall)
             x, y = wall
 
-            # Check if the wall divides a cell in the maze and a cell not in the maze
             if self.is_valid_wall(x, y):
-                # Make the wall a passage
-                self.grid[x][y] = 1
-                # Add the neighboring walls of the cell to the wall list
-                self.add_walls(x, y)
+                self.grid[x][y] = 1  # Carve out a path by turning the wall into an open space
+                nx, ny = self.get_opposite_cell(x, y)
+                if 0 <= nx < self.num_cells_x and 0 <= ny < self.num_cells_y:
+                    self.grid[nx][ny] = 1
+                    self.add_walls(nx, ny)
+
+            self.walls.remove(wall)
+
 
     def add_walls(self, x, y):
-        # Add walls of a cell to the walls list if the opposite cell is not visited
-        if x > 1 and self.grid[x - 2][y] == 0:
-            self.walls.append((x - 1, y))
-        if x < self.num_cells_x - 2 and self.grid[x + 2][y] == 0:
-            self.walls.append((x + 1, y))
-        if y > 1 and self.grid[x][y - 2] == 0:
-            self.walls.append((x, y - 1))
-        if y < self.num_cells_y - 2 and self.grid[x][y + 2] == 0:
-            self.walls.append((x, y + 1))
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.num_cells_x and 0 <= ny < self.num_cells_y and self.grid[nx][ny] == 0:
+                self.walls.append((nx, ny))
+
+
 
     def is_valid_wall(self, x, y):
-        # Check if the wall divides a cell in the maze and a cell not in the maze
-        neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-        visited_neighbors = [n for n in neighbors if self.grid[n[0]][n[1]] == 1]
-        return len(visited_neighbors) == 1 and self.grid[x][y] == 0
+        opposite_x, opposite_y = self.get_opposite_cell(x, y)
+        if opposite_x == -1 or opposite_y == -1:
+            return False
+        if 0 <= opposite_x < self.num_cells_x and 0 <= opposite_y < self.num_cells_y:
+            return self.grid[opposite_x][opposite_y] == 0 and self.grid[x][y] == 0
+        return False
+
+    def get_opposite_cell(self, x, y):
+        # Determine the direction of the wall and get the opposite cell
+        if x % 2 != 0:  # Vertical wall
+            if x > 0 and self.grid[x - 1][y] == 0:
+                return x - 1, y
+            elif x < self.num_cells_x - 1 and self.grid[x + 1][y] == 0:
+                return x + 1, y
+        elif y % 2 != 0:  # Horizontal wall
+            if y > 0 and self.grid[x][y - 1] == 0:
+                return x, y - 1
+            elif y < self.num_cells_y - 1 and self.grid[x][y + 1] == 0:
+                return x, y + 1
+
+        # Return an invalid coordinate if there's no valid opposite cell
+        return -1, -1
 
 
-    def open_portals(self, num_portals = 3):
+
+    def open_portals(self, num_portals = 5):
         suitable_rows = []
         # Check each row for potential portal placement
         for i in range(1, self.num_cells_x - 1):  # Avoid the first and last row
@@ -238,3 +261,20 @@ generated_maze = maze.get_maze() # get maze
 for row in generated_maze:
     print(' '.join(str(cell) for cell in row))
 """
+
+
+
+# Instantiate the maze with a level number and ghost number
+levelNumber = 1
+ghostNumber = 2
+maze = Maze(levelNumber, ghostNumber)
+
+# Generate the maze using Prim's algorithm
+maze.generate(method='prims')
+
+# Retrieve the generated maze
+generated_maze = maze.get_maze()
+
+# Print the maze
+for row in generated_maze:
+    print(' '.join(str(cell) for cell in row))
