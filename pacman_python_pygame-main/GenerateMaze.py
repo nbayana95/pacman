@@ -158,6 +158,10 @@ class Maze:
             if self.grid[i][1] != 0 and self.grid[i][self.num_cells_y - 2] != 0:  # Check if 2nd and 2nd-last columns are not walls
                 suitable_rows.append(i)
 
+
+        if (len(suitable_rows) < num_portals):
+            num_portals = len(suitable_rows)
+            
         # Randomly pick rows to open portals
         for _ in range(min(num_portals, len(suitable_rows))):
             row_to_open = random.choice(suitable_rows)
