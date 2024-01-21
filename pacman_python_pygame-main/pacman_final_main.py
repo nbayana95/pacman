@@ -120,7 +120,7 @@ class GameRenderer:
         self.GhostStrategyAI = GhostStrategyAI
         self.GhostNumber = 0
         # define log dictionary
-        GhostDict = {'id': list(), 'x': list(), 'y': list()}
+        GhostDict = {'id': list(), 'x': list(), 'y': list(), 'chaseMode': list()}
         HeroDict = {'x': list(), 'y': list()}
         self.logDict = {'HeroLocation': HeroDict, 'GhostNumber': list(), 'GhostInfo': GhostDict, 'CurrentTime': list(),
                    'GhostSpawnTime': list(), 'TimeDiff': list(), 'Score': list(), 'Life': list()}
@@ -179,8 +179,10 @@ class GameRenderer:
                 if manhattanScore<=10:
                     #print("got in range")
                     ghostInfo[ind].Chase = 1
+                    self.logDict['GhostInfo']['chaseMode'].append(1)
                 else:
                     ghostInfo[ind].Chase = 0
+                    self.logDict['GhostInfo']['chaseMode'].append(0)
             self.logDict['Score'].append(self._score)
             self.logDict['Life'].append(self._lives)
 
