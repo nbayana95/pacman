@@ -146,7 +146,7 @@ class GameRenderer:
 
         print("Game over")
 
-    def updatedTick(self, in_fps: int, numberOfGhost, UNIFIED_SIZE):
+    def updatedTick(self, in_fps: int, numberOfGhost, UNIFIED_SIZE, saveLogFlag):
         black = (0, 0, 0)
         self.GhostNumber = numberOfGhost
         self.handle_mode_switch()
@@ -211,10 +211,11 @@ class GameRenderer:
         # save logs as json file
         # Writing nested dictionary to a JSON file (similar to text file)
         # Get the current system date and time
-        current_time = datetime.now()
-        filename = current_time.strftime("%d%m%Y_%H%M%S.json")
-        with open(filename, 'w') as file:
-            json.dump(self.logDict, file, indent=4)  # 'indent' for pretty printing
+        if saveLogFlag:
+            current_time = datetime.now()
+            filename = current_time.strftime("%d%m%Y_%H%M%S.json")
+            with open(filename, 'w') as file:
+                json.dump(self.logDict, file, indent=4)  # 'indent' for pretty printing
         print("Game over")
 
     def handle_mode_switch(self):
@@ -497,6 +498,7 @@ class Ghost(MovableObject):
         self.sprite_normal = pygame.image.load(sprite_path)
         self.sprite_fright = pygame.image.load("images/ghost_fright.png")
         self.Chase = 0
+        self.ChaseHistory = 0
         #self.locked_into_player = False
 
     def reached_target(self):
@@ -505,12 +507,23 @@ class Ghost(MovableObject):
         self.current_direction = self.calculate_direction_to_next_target()
 
     def set_new_path(self, in_path):
+        enterFlag = 0
+        if len(in_path)>0:
+            self.location_queue = list()
         for item in in_path:
             self.location_queue.append(item)
+            if enterFlag==0:
+                if self.Chase == 1:
+                    self.ChaseHistory = 1
+                else:
+                    self.ChaseHistory = 0
+                enterFlag = 1
+
         self.next_target = self.get_next_location()
 
     def calculate_direction_to_next_target(self) -> Direction:
-        if self.next_target is None:
+
+        if self.next_target is None or (self.ChaseHistory==0 and self.Chase==1):
             # if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active() or self.Chase:
             
             if self.Chase == 1 and not self._renderer.is_kokoro_active():
@@ -518,7 +531,7 @@ class Ghost(MovableObject):
             else:
                 self.locked_into_player = False
                 self.game_controller.request_new_random_path(self)
-            
+
             return Direction.NONE
 
         #if (not self.locked_into_player and self.Chase == 1 and not self._renderer.is_kokoro_active()):
@@ -687,6 +700,7 @@ class PacmanGameController:
 if __name__ == "__main__":
     levelNumber = 1 # define level number
     numberOfGhost = 2 # define number of ghost
+    saveLogFlag = False
     generated_maze = Maze(levelNumber, numberOfGhost) # define maze
     generated_maze.generate() # generate maze using Depth-First Alg.
     initial_maze_grid = generated_maze.get_maze() # get maze without ghosts
@@ -728,5 +742,5 @@ if __name__ == "__main__":
     game_renderer.add_hero(pacman)
     game_renderer.set_current_mode(GhostBehaviour.CHASE)
     # game_renderer.tick(120)
-    game_renderer.updatedTick(120, numberOfGhost, UNIFIED_SIZE)
+    game_renderer.updatedTick(120, numberOfGhost, UNIFIED_SIZE, saveLogFlag)
     
