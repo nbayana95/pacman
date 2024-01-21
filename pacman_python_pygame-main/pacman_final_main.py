@@ -700,7 +700,7 @@ class PacmanGameController:
 if __name__ == "__main__":
     levelNumber = 1 # define level number
     numberOfGhost = 2 # define number of ghost
-    saveLogFlag = False
+    saveLogFlag = True
     generated_maze = Maze(levelNumber, numberOfGhost) # define maze
     generated_maze.generate() # generate maze using Depth-First Alg.
     initial_maze_grid = generated_maze.get_maze() # get maze without ghosts
