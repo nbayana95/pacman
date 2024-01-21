@@ -2,6 +2,8 @@
 import time
 import random
 class GhostStrategyAI():
+    manhattanDistance = 10
+    ghostSpawnFrequency = 60
     def __init__(self, maze_grid, pacman_start, min_distance=10):
         self.maze_grid = maze_grid
         self.pacman_start = pacman_start

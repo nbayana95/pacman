@@ -122,7 +122,9 @@ class GameRenderer:
         # define log dictionary
         GhostDict = {'id': list(), 'x': list(), 'y': list(), 'chaseMode': list()}
         HeroDict = {'x': list(), 'y': list()}
-        self.logDict = {'HeroLocation': HeroDict, 'GhostNumber': list(), 'GhostInfo': GhostDict, 'CurrentTime': list(),
+        self.logDict = {'PortalCount': Maze.portalCount, 'PowerUpCount': Maze.powerUpCount, 'ManhattanDistance': GhostStrategyAI.manhattanDistance, 'GhostSpawnFrequency': GhostStrategyAI.ghostSpawnFrequency,
+            'MazeSizeX': Maze.MazeSizeX, 'MazeSizeY':Maze.MazeSizeY,
+            'HeroLocation': HeroDict, 'GhostNumber': list(), 'GhostInfo': GhostDict, 'CurrentTime': list(),
                    'GhostSpawnTime': list(), 'TimeDiff': list(), 'Score': list(), 'Life': list()}
 
     def tick(self, in_fps: int):
@@ -151,6 +153,7 @@ class GameRenderer:
         self.GhostNumber = numberOfGhost
         self.handle_mode_switch()
         pygame.time.set_timer(self._pakupaku_event, 200) # open close mouth
+
         last_ghost_spawn_time = time.time()
         while not self._done:
             for game_object in self._game_objects:

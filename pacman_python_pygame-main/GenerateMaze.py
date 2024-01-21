@@ -1,10 +1,14 @@
 import random
 
 class Maze:
+    portalCount = 5
+    powerUpCount = 7
+    MazeSizeX = 29
+    MazeSizeY = 26
     def __init__(self, level, ghostNumber):
         # Set the dimensions of the maze
-        self.num_cells_x = 29
-        self.num_cells_y = 26
+        self.num_cells_x = Maze.MazeSizeX
+        self.num_cells_y = Maze.MazeSizeY
         # Initialize all cells as walls (0)
         self.grid = [[0 for _ in range(self.num_cells_y)] for _ in range(self.num_cells_x)]
         # Stack for depth-first search algorithm
@@ -13,6 +17,8 @@ class Maze:
         self.walls = []
         # Ghost number to be added
         self.ghost_number = ghostNumber
+
+
         # Determine the starting cell based on the level
         level_start = random.randint(1, 10)
         #print(f"Level {level}, Starting Number: {level_start}")
