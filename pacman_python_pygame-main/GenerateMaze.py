@@ -42,7 +42,7 @@ class Maze:
     def generate_dfs(self):
         # Run the DFS algorithm until the stack is empty
         while self.stack:
-            self.step()
+            self.dfs_step()
 
         # Enhance each array in the original list by adding a 0 at the beginning and at the end
         originalGrid = self.grid
