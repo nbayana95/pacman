@@ -177,6 +177,7 @@ class GameRenderer:
                 self.logDict['GhostInfo']['y'].append(int(ghostInfo[ind].y/UNIFIED_SIZE))
                 manhattanScore = abs(self.logDict['GhostInfo']['x'][-1]-self.logDict['HeroLocation']['x'][-1])+abs(self.logDict['GhostInfo']['y'][-1]-self.logDict['HeroLocation']['y'][-1])
                 if manhattanScore<=10:
+                    #print("got in range")
                     ghostInfo[ind].Chase = 1
                 else:
                     ghostInfo[ind].Chase = 0
@@ -496,6 +497,7 @@ class Ghost(MovableObject):
         self.sprite_normal = pygame.image.load(sprite_path)
         self.sprite_fright = pygame.image.load("images/ghost_fright.png")
         self.Chase = 0
+        #self.locked_into_player = False
 
     def reached_target(self):
         if (self.x, self.y) == self.next_target:
@@ -511,15 +513,16 @@ class Ghost(MovableObject):
         if self.next_target is None:
             # if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active() or self.Chase:
             
-            if self._renderer.is_kokoro_active():
-                self.game_controller.request_new_random_path(self)
+            if self.Chase == 1 and not self._renderer.is_kokoro_active():
+                self.request_path_to_player(self)
             else:
-                if self.Chase:
-                    self.request_path_to_player(self)
-                else:
-                    self.game_controller.request_new_random_path(self)
+                self.locked_into_player = False
+                self.game_controller.request_new_random_path(self)
             
             return Direction.NONE
+
+        #if (not self.locked_into_player and self.Chase == 1 and not self._renderer.is_kokoro_active()):
+            #self.request_path_to_player(self)
 
         diff_x = self.next_target[0] - self.x
         diff_y = self.next_target[1] - self.y
@@ -528,15 +531,18 @@ class Ghost(MovableObject):
         if diff_y == 0:
             return Direction.LEFT if diff_x < 0 else Direction.RIGHT
 
-        if self._renderer.get_current_mode() == GhostBehaviour.CHASE and not self._renderer.is_kokoro_active():
+        if self.Chase == 1 and not self._renderer.is_kokoro_active():
             self.request_path_to_player(self)
         else:
+            #self.locked_into_player = False
             self.game_controller.request_new_random_path(self)
         return Direction.NONE
 
     def request_path_to_player(self, in_ghost):
+        #self.locked_into_player = True
         player_position = translate_screen_to_maze(in_ghost._renderer.get_hero_position())
         current_maze_coord = translate_screen_to_maze(in_ghost.get_position())
+        print("Requesting path to player: ", "PLAYER POSITION: ", player_position, "GHOST POSITION: ", current_maze_coord)
         path = self.game_controller.p.get_path(current_maze_coord[1], current_maze_coord[0], player_position[1],
                                                player_position[0])
 
